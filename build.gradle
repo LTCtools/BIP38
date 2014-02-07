@@ -11,7 +11,8 @@ dependencies {
   compile 'com.google.guava:guava:15.0'
   compile 'com.google:bitcoinj:0.11-SNAPSHOT'
   compile 'org.bouncycastle:bcprov-jdk16:1.46'
-  testCompile 'org.testng:testng:6.8.7'
+    testCompile 'org.testng:testng:6.8.7'
+    testCompile 'org.slf4j:slf4j-simple:1.6.1'
 }
 
 test {
