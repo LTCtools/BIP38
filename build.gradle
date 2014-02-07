@@ -5,6 +5,11 @@ repositories {
     mavenLocal()
 }
 
+allprojects {
+    apply plugin: 'maven'
+    group = 'com.fruitcat.bitcoin'
+    version = '0.1-SNAPSHOT'
+}
 
 dependencies {
   compile 'com.madgag:scprov-jdk15on:1.47.0.3'
