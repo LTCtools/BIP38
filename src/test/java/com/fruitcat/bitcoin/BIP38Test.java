@@ -19,6 +19,7 @@ public class BIP38Test {
 
     @Test
     public void noCompressionNoECMultiply() throws Exception {
+        BIP38.setNetParams(com.google.bitcoin.params.MainNetParams.get());
         //test 1
         String encryptedKey = "6PRVWUbkzzsbcVac2qwfssoUJAN1Xhrg6bNk8J7Nzm5H7kxEbn2Nh2ZoGg";
         String key = "5KN7MzqK5wt2TP1fQCYyHBtDrXdJuXbUzm4A9rKAteGu3Qi5CVR";
@@ -33,6 +34,7 @@ public class BIP38Test {
 
     @Test
     public void compressionNoECMultiply() throws Exception {
+        BIP38.setNetParams(com.google.bitcoin.params.MainNetParams.get());
         //test 1
         String encryptedKey = "6PYNKZ1EAgYgmQfmNVamxyXVWHzK5s6DGhwP4J5o44cvXdoY7sRzhtpUeo";
         String key = "L44B5gGEpqEDRS9vVPz7QT35jcBG2r3CZwSwQ4fCewXAhAhqGVpP";
@@ -48,6 +50,7 @@ public class BIP38Test {
     //EC multiply, no compression, no lot/sequence numbers
     @Test
     public void ecMultiplyNoCompressionNoLot() throws Exception {
+        BIP38.setNetParams(com.google.bitcoin.params.MainNetParams.get());
         //test 1
         String encryptedKey = "6PfQu77ygVyJLZjfvMLyhLMQbYnu5uguoJJ4kMCLqWwPEdfpwANVS76gTX";
         String key = "5K4caxezwjGCGfnoPTZ8tMcJBLB7Jvyjv4xxeacadhq8nLisLR2";
@@ -70,6 +73,7 @@ public class BIP38Test {
     //EC multiply, no compression, lot/sequence
     @Test
     public void ecMultiplyNoCompressionLot() throws Exception {
+        BIP38.setNetParams(com.google.bitcoin.params.MainNetParams.get());
         //test 1
         String encryptedKey = "6PgNBNNzDkKdhkT6uJntUXwwzQV8Rr2tZcbkDcuC9DZRsS6AtHts4Ypo1j";
         String key = "5JLdxTtcTHcfYcmJsNVy1v2PMDx432JPoYcBTVVRHpPaxUrdtf8";
@@ -92,6 +96,7 @@ public class BIP38Test {
     //round encrypt and decrypt with a random ascii password
     @Test
     public void randomRoundTripNoEC() throws Exception {
+        BIP38.setNetParams(com.google.bitcoin.params.MainNetParams.get());
         byte[] r = new byte[16];
         (new Random()).nextBytes(r);
         String randomPass = new String(r, "ASCII");
@@ -103,6 +108,7 @@ public class BIP38Test {
     //generate an encrypted key and make sure it looks ok.
     @Test
     public void generateEncryptedKey() throws Exception {
+        BIP38.setNetParams(com.google.bitcoin.params.MainNetParams.get());
         String k = BIP38.generateEncryptedKey(testPass);
         String dk = BIP38.decrypt(testPass, k);
         assertEquals(dk.charAt(0), '5');
@@ -111,9 +117,32 @@ public class BIP38Test {
     //check confirmation code
     @Test
     public void checkConfirmation() throws Exception {
+        BIP38.setNetParams(com.google.bitcoin.params.MainNetParams.get());
         byte[] intermediate = Arrays.copyOfRange(Base58.decode(BIP38.intermediatePassphrase(testPass, -1, -1)), 0, 53);
         GeneratedKey gk = BIP38.encryptedKeyFromIntermediate(intermediate);
         assert(BIP38.verify(testPass, gk));
         assert(!BIP38.verify("garbage", gk));
+    }
+
+    @Test
+    public void litecoinRandomRoundTripNoEC() throws Exception {
+        BIP38.setNetParams(org.litecoin.LitecoinParams.get());
+        byte[] r = new byte[16];
+        (new Random()).nextBytes(r);
+        String randomPass = new String(r, "ASCII");
+        String key = "6uRPj6B3bPCqf9KZLzc1VWHsmZgXXhx5qdm69BV9hg454LNwGwX";
+        String encryptedKey = BIP38.encryptNoEC(randomPass, key, false);
+        assertEquals(key, (BIP38.decrypt(randomPass, encryptedKey)));
+    }
+
+    @Test
+    public void litecoinCompressionNoECMultiply() throws Exception {
+        BIP38.setNetParams(org.litecoin.LitecoinParams.get());
+        // 6PfMZr9CPt4JvcEZnSRRD8F9a2dYJ3H999sLoLJD3Lxh5gF5gC64TY8j1Q + "Satoshi"
+        // == 6vHEw38JPP6fvNBxVUeb499S7JBfRX5dMGadWrjv3w78UHPD2ac
+        String encryptedKey = "6PfMZr9CPt4JvcEZnSRRD8F9a2dYJ3H999sLoLJD3Lxh5gF5gC64TY8j1Q";
+        String key = "6vHEw38JPP6fvNBxVUeb499S7JBfRX5dMGadWrjv3w78UHPD2ac";
+        String decryptedKey = BIP38.decrypt("Satoshi", encryptedKey);
+        assertEquals(decryptedKey, key);
     }
 }
