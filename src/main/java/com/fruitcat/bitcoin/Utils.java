@@ -20,10 +20,19 @@ package com.fruitcat.bitcoin;
 import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.Base58;
 import org.bouncycastle.math.ec.ECPoint;
+import org.spongycastle.crypto.BufferedBlockCipher;
+import org.spongycastle.crypto.DataLengthException;
+import org.spongycastle.crypto.InvalidCipherTextException;
+import org.spongycastle.crypto.engines.AESFastEngine;
+import org.spongycastle.crypto.modes.CBCBlockCipher;
+import org.spongycastle.crypto.paddings.PaddedBufferedBlockCipher;
+import org.spongycastle.crypto.params.KeyParameter;
+import org.spongycastle.crypto.params.ParametersWithIV;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.GeneralSecurityException;
@@ -84,30 +93,65 @@ public class Utils {
 
     /**
      * Encrypts plaintext with AES
-     * @param plaintext
+     * @param plainTextAsBytes
      * @param key
      * @return
      * @throws GeneralSecurityException
      */
-    public static byte[] AESEncrypt(byte[] plaintext, byte[] key) throws GeneralSecurityException {
-        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding", "BC");
-        Key aesKey = new SecretKeySpec(key, "AES");
-        cipher.init(Cipher.ENCRYPT_MODE, aesKey);
-        return cipher.doFinal(plaintext);
+    public static byte[] AESEncrypt(byte[] plainTextAsBytes, byte[] key) throws GeneralSecurityException {
+        try
+        {
+            final BufferedBlockCipher cipher = new BufferedBlockCipher(new CBCBlockCipher(new AESFastEngine()));
+            KeyParameter aesKey = new KeyParameter(key);
+
+            cipher.init(true, aesKey);
+
+            final byte[] encryptedBytes = new byte[cipher.getOutputSize(plainTextAsBytes.length)];
+            final int length = cipher.processBytes(plainTextAsBytes, 0, plainTextAsBytes.length, encryptedBytes, 0);
+
+            cipher.doFinal(encryptedBytes, length);
+
+            return encryptedBytes;
+        }
+        catch (final InvalidCipherTextException x)
+        {
+            throw new GeneralSecurityException("Could not encrypt bytes", x);
+        }
+        catch (final DataLengthException x)
+        {
+            throw new GeneralSecurityException("Could not encrypt bytes", x);
+        }
     }
 
     /**
      * Decrypts ciphertext with AES
-     * @param ciphertext
+     * @param cipherBytes
      * @param key
      * @return
      * @throws GeneralSecurityException
      */
-    public static byte[] AESDecrypt(byte[] ciphertext, byte[] key) throws GeneralSecurityException {
-        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding", "BC");
-        Key aesKey = new SecretKeySpec(key, "AES");
-        cipher.init(Cipher.DECRYPT_MODE, aesKey);
-        return cipher.doFinal(ciphertext);
+    public static byte[] AESDecrypt(byte[] cipherBytes, byte[] key) throws GeneralSecurityException {
+        try
+        {
+            final BufferedBlockCipher cipher = new BufferedBlockCipher(new CBCBlockCipher(new AESFastEngine()));
+            KeyParameter aesKey = new KeyParameter(key);
+            cipher.init(false, aesKey);
+
+            final byte[] decryptedBytes = new byte[cipher.getOutputSize(cipherBytes.length)];
+            final int length = cipher.processBytes(cipherBytes, 0, cipherBytes.length, decryptedBytes, 0);
+
+            cipher.doFinal(decryptedBytes, length);
+
+            return decryptedBytes;
+        }
+        catch (final InvalidCipherTextException x)
+        {
+            throw new GeneralSecurityException("Could not decrypt input string", x);
+        }
+        catch (final DataLengthException x)
+        {
+            throw new GeneralSecurityException("Could not decrypt input string", x);
+        }
     }
 
     /**

@@ -21,7 +21,12 @@
 
 package com.fruitcat.bitcoin;
 
-import com.google.bitcoin.core.*;
+import com.google.bitcoin.core.Address;
+import com.google.bitcoin.core.AddressFormatException;
+import com.google.bitcoin.core.Base58;
+import com.google.bitcoin.core.DumpedPrivateKey;
+import com.google.bitcoin.core.ECKey;
+import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.params.MainNetParams;
 import com.lambdaworks.crypto.SCrypt;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
